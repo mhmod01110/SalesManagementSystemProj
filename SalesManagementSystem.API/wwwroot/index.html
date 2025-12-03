@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Management System</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Sales Management System</h1>
+
+    <h2>Invoices</h2>
+    <button onclick="loadInvoices()">Load Invoices</button>
+    <div id="error" class="error"></div>
+    <table id="invoicesTable">
+        <thead>
+            <tr>
+                <th>Invoice Number</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Invoices will be populated here -->
+        </tbody>
+    </table>
+
+    <script>
+        async function loadInvoices() {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '';
+            const tbody = document.querySelector('#invoicesTable tbody');
+            tbody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+
+            try {
+                const response = await fetch('/api/sales');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                tbody.innerHTML = '';
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">No invoices found.</td></tr>';
+                    return;
+                }
+
+                data.forEach(invoice => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${invoice.InvoiceNumber}</td>
+                        <td>${new Date(invoice.InvoiceDate).toLocaleDateString()}</td>
+                        <td>${invoice.CustomerName}</td>
+                        <td>${invoice.TotalAmount}</td>
+                        <td>${invoice.PaymentStatus}</td>
+                        <td><button onclick="viewDetails(${invoice.InvoiceID})">Details</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error fetching invoices:', error);
+                errorDiv.textContent = 'Failed to load invoices. ' + error.message;
+                tbody.innerHTML = '';
+            }
+        }
+
+        async function viewDetails(id) {
+            alert('View details for ID: ' + id);
+            // Implement details view logic here
+        }
+
+        // Load initially
+        // loadInvoices();
+    </script>
+</body>
+</html>
